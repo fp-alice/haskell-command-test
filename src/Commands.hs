@@ -41,23 +41,6 @@ interpret Add    v name m              = updateModSetting m name v addSettings
 interpret Remove v name m              = updateModSetting m name v subtractSettings
 interpret Toggle _ _    (Mod mn ms me) = Mod mn ms (not me)
 
-{-|
-Peculiar bug, if we go into the repl and enter the following
-xray blocks + [grass dirt]
-xray's block setting contains [String "grass", String "dirt"]
-if I then do
-xray blocks - dirt
-xray's block setting contains []
-when I would expect it to contain [String "grass"]
-
-This is peculiar, because doing the same thing in-code produces the expected result
-
-updateModSetting (Mod "xray" [("blocks", List[String "grass", String "stone"])] False) "blocks" (String "grass") subtractSettings
-and
-interpret Remove (String "grass") "blocks" (Mod "xray" [("blocks", List [String "grass", String "dirt"])] False)
-both produce the expected result
--}
-
 runCommand :: Command -> [Mod] -> [Mod]
 runCommand (Command instruction targetMod settingName currentValue) = fmap updateMod
   where updateMod mod'@(Mod name _ _) = if name == targetMod
@@ -65,8 +48,8 @@ runCommand (Command instruction targetMod settingName currentValue) = fmap updat
                                         else mod'
 
 run mods i = case parseCommand mods i of
-  Left e  -> (show e, commands)
-  Right r -> (show r, runCommand r commands)
+  Left e  -> (show e, mods)
+  Right r -> (show r, runCommand r mods)
 
 repl :: IO ()
 repl = go commands where
